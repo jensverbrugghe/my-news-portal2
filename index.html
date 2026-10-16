@@ -1,135 +1,395 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My News Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f4f6f9; }
-    .news-card { transition: transform .2s ease, box-shadow .2s ease; }
-    .news-card:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(0,0,0,.1) !important; }
-    .news-card .card-img-top { height: 180px; object-fit: cover; }
+    :root {
+      --accent: #7c5cff;
+      --accent-2: #00d4c8;
+      --radius: 1.25rem;
+    }
+    [data-bs-theme="dark"] {
+      --bs-body-bg: #0b0d14;
+      --bs-body-color: #e6e8f0;
+      --surface: #141724;
+      --surface-2: #1c2031;
+      --border: rgba(255,255,255,.08);
+      --muted: #8b90a7;
+      --nav-bg: rgba(11,13,20,.7);
+    }
+    [data-bs-theme="light"] {
+      --bs-body-bg: #f6f7fb;
+      --bs-body-color: #12141c;
+      --surface: #ffffff;
+      --surface-2: #eef0f7;
+      --border: rgba(0,0,0,.07);
+      --muted: #646a80;
+      --nav-bg: rgba(255,255,255,.75);
+    }
+
+    body {
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      background: var(--bs-body-bg);
+      transition: background-color .3s, color .3s;
+    }
+    a { text-decoration: none; }
+    .text-muted-2 { color: var(--muted) !important; }
+    .gradient-text {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+
+    /* Navbar */
+    .glass-nav {
+      background: var(--nav-bg);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-logo {
+      width: 36px; height: 36px; border-radius: .75rem;
+      display: inline-grid; place-items: center; color: #fff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    .glass-nav .nav-link { font-weight: 500; color: var(--muted); border-radius: 999px; padding: .4rem .9rem !important; }
+    .glass-nav .nav-link:hover, .glass-nav .nav-link.active { color: var(--bs-body-color); background: var(--surface-2); }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--bs-body-color);
+      display: inline-grid; place-items: center;
+    }
+    .icon-btn:hover { background: var(--surface-2); }
+
+    /* Pills */
+    .chip {
+      border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+      border-radius: 999px; padding: .45rem 1rem; font-weight: 500; font-size: .9rem; white-space: nowrap;
+      transition: all .2s;
+    }
+    .chip:hover, .chip.active { color: #fff; background: var(--accent); border-color: var(--accent); }
+    .chip-row { overflow-x: auto; scrollbar-width: none; }
+    .chip-row::-webkit-scrollbar { display: none; }
+
+    /* Hero */
+    .hero {
+      position: relative; border-radius: var(--radius); overflow: hidden; min-height: 460px;
+      display: flex; align-items: flex-end; color: #fff;
+    }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
+    .hero:hover img { transform: scale(1.04); }
+    .hero::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(5,6,12,.92) 100%);
+    }
+    .hero-content { position: relative; z-index: 1; padding: 2rem; }
+    .hero h1 { font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+
+    .tag {
+      display: inline-block; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+      padding: .3rem .7rem; border-radius: 999px; background: rgba(124,92,255,.15); color: var(--accent);
+    }
+    .hero .tag { background: rgba(255,255,255,.18); color: #fff; backdrop-filter: blur(6px); }
+
+    /* Panels & cards */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+    .trending-item { display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border); color: inherit; }
+    .trending-item:last-child { border-bottom: 0; }
+    .trending-num { font-size: 1.6rem; font-weight: 800; line-height: 1; min-width: 2rem; }
+    .trending-item:hover h3 { color: var(--accent); }
+
+    .news-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; height: 100%; display: flex; flex-direction: column;
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s;
+    }
+    .news-card:hover { transform: translateY(-6px); border-color: rgba(124,92,255,.4); box-shadow: 0 20px 40px -20px rgba(124,92,255,.45); }
+    .news-card .thumb { aspect-ratio: 16/10; overflow: hidden; }
+    .news-card .thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
+    .news-card:hover .thumb img { transform: scale(1.06); }
+    .news-card h3 { font-size: 1.1rem; font-weight: 700; line-height: 1.35; }
+
+    .btn-accent {
+      --bs-btn-color: #fff; --bs-btn-bg: var(--accent); --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #6a48f5; --bs-btn-hover-border-color: #6a48f5;
+      border-radius: 999px; font-weight: 600; padding: .55rem 1.3rem;
+    }
+    .read-more { font-weight: 600; color: var(--accent); display: inline-flex; align-items: center; gap: .35rem; }
+    .read-more i { transition: transform .2s; }
+    .read-more:hover i { transform: translateX(4px); }
+
+    .section-title { font-weight: 800; letter-spacing: -.02em; }
+
+    /* Newsletter */
+    .newsletter {
+      border-radius: var(--radius); color: #fff; position: relative; overflow: hidden;
+      background: linear-gradient(135deg, var(--accent) 0%, #4a2fd6 50%, #0aa8a0 100%);
+    }
+    .newsletter .form-control { border-radius: 999px; border: 0; padding: .75rem 1.25rem; }
+    .newsletter .btn { border-radius: 999px; padding: .75rem 1.5rem; font-weight: 600; }
+
+    footer { border-top: 1px solid var(--border); }
+
+    @media (max-width: 575.98px) {
+      .hero { min-height: 380px; }
+      .hero-content { padding: 1.25rem; }
+      .hero h1 { font-size: 1.6rem; }
+    }
   </style>
 </head>
 <body>
 
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+  <nav class="navbar navbar-expand-lg glass-nav sticky-top py-3">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="#">My News Portal</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-              aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+      <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="#">
+        <span class="brand-logo"><i class="bi bi-lightning-charge-fill"></i></span>
+        My News Portal
+      </a>
+      <div class="d-flex align-items-center gap-2 order-lg-last">
+        <button class="icon-btn d-none d-sm-inline-grid" type="button" aria-label="Search"><i class="bi bi-search"></i></button>
+        <button class="icon-btn" type="button" id="themeToggle" aria-label="Toggle theme"><i class="bi bi-sun"></i></button>
+        <button class="navbar-toggler icon-btn border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+      </div>
       <div class="collapse navbar-collapse" id="mainNav">
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav mx-auto gap-lg-1 pt-3 pt-lg-0">
           <li class="nav-item"><a class="nav-link active" aria-current="page" href="#">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#">World</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Technology</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Tech</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Business</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Science</a></li>
           <li class="nav-item"><a class="nav-link" href="#">Sports</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
         </ul>
       </div>
     </div>
   </nav>
 
-  <!-- Header -->
-  <header class="bg-white border-bottom py-4 mb-4">
-    <div class="container">
-      <h1 class="h3 mb-1">Latest News</h1>
-      <p class="text-muted mb-0">Stay up to date with the top stories of the day.</p>
+  <main class="container py-4 py-lg-5">
+
+    <!-- Intro -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+      <div>
+        <p class="text-muted-2 mb-1 small fw-semibold text-uppercase" id="today"></p>
+        <h2 class="section-title display-6 mb-0">Today's <span class="gradient-text">top stories</span></h2>
+      </div>
+      <div class="chip-row d-flex gap-2 pb-1">
+        <a href="#" class="chip active">All</a>
+        <a href="#" class="chip">World</a>
+        <a href="#" class="chip">Tech</a>
+        <a href="#" class="chip">Business</a>
+        <a href="#" class="chip">Science</a>
+        <a href="#" class="chip">Health</a>
+      </div>
     </div>
-  </header>
 
-  <!-- News list -->
-  <main class="container pb-5">
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-
-      <div class="col">
-        <article class="card h-100 border-0 shadow-sm news-card">
-          <img src="https://picsum.photos/seed/tech/600/400" class="card-img-top" alt="Technology">
-          <div class="card-body d-flex flex-column">
-            <span class="badge text-bg-primary align-self-start mb-2">Technology</span>
-            <h2 class="card-title h5">New Breakthrough in Quantum Computing</h2>
-            <p class="card-text text-muted">Researchers announce a stable quantum processor that could speed up complex calculations dramatically.</p>
-            <a href="#" class="btn btn-outline-primary mt-auto align-self-start">Read more</a>
+    <!-- Featured + trending -->
+    <div class="row g-4 mb-5">
+      <div class="col-lg-8">
+        <article class="hero">
+          <img src="https://picsum.photos/seed/quantum/1200/800" alt="Featured story">
+          <div class="hero-content">
+            <span class="tag mb-3">Featured · Technology</span>
+            <h1 class="display-6 mb-3">New Breakthrough in Quantum Computing Could Reshape the Digital World</h1>
+            <p class="mb-4 opacity-75 d-none d-md-block">Researchers unveil a stable quantum processor capable of solving problems that would take today's supercomputers thousands of years.</p>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+              <a href="#" class="btn btn-accent">Read more <i class="bi bi-arrow-right ms-1"></i></a>
+              <span class="small opacity-75"><i class="bi bi-clock me-1"></i>6 min read</span>
+            </div>
           </div>
         </article>
       </div>
 
-      <div class="col">
-        <article class="card h-100 border-0 shadow-sm news-card">
-          <img src="https://picsum.photos/seed/world/600/400" class="card-img-top" alt="World">
-          <div class="card-body d-flex flex-column">
-            <span class="badge text-bg-success align-self-start mb-2">World</span>
-            <h2 class="card-title h5">Global Leaders Meet for Climate Summit</h2>
-            <p class="card-text text-muted">Heads of state gather to discuss new targets for reducing emissions over the next decade.</p>
-            <a href="#" class="btn btn-outline-primary mt-auto align-self-start">Read more</a>
-          </div>
-        </article>
+      <div class="col-lg-4">
+        <aside class="panel p-4 h-100">
+          <h2 class="h5 fw-bold d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-fire text-danger"></i> Trending now
+          </h2>
+          <a href="#" class="trending-item">
+            <span class="trending-num gradient-text">01</span>
+            <div>
+              <h3 class="h6 fw-semibold mb-1">Global leaders agree on bold new climate targets</h3>
+              <span class="small text-muted-2">World · 2h ago</span>
+            </div>
+          </a>
+          <a href="#" class="trending-item">
+            <span class="trending-num gradient-text">02</span>
+            <div>
+              <h3 class="h6 fw-semibold mb-1">Markets rally after surprise interest rate pause</h3>
+              <span class="small text-muted-2">Business · 3h ago</span>
+            </div>
+          </a>
+          <a href="#" class="trending-item">
+            <span class="trending-num gradient-text">03</span>
+            <div>
+              <h3 class="h6 fw-semibold mb-1">Underdogs clinch championship in extra time</h3>
+              <span class="small text-muted-2">Sports · 5h ago</span>
+            </div>
+          </a>
+          <a href="#" class="trending-item">
+            <span class="trending-num gradient-text">04</span>
+            <div>
+              <h3 class="h6 fw-semibold mb-1">Space telescope captures the most distant galaxy yet</h3>
+              <span class="small text-muted-2">Science · 7h ago</span>
+            </div>
+          </a>
+        </aside>
       </div>
-
-      <div class="col">
-        <article class="card h-100 border-0 shadow-sm news-card">
-          <img src="https://picsum.photos/seed/sports/600/400" class="card-img-top" alt="Sports">
-          <div class="card-body d-flex flex-column">
-            <span class="badge text-bg-danger align-self-start mb-2">Sports</span>
-            <h2 class="card-title h5">Underdogs Clinch Championship Title</h2>
-            <p class="card-text text-muted">In a thrilling final, the underdog team secured victory in the last minute of extra time.</p>
-            <a href="#" class="btn btn-outline-primary mt-auto align-self-start">Read more</a>
-          </div>
-        </article>
-      </div>
-
-      <div class="col">
-        <article class="card h-100 border-0 shadow-sm news-card">
-          <img src="https://picsum.photos/seed/business/600/400" class="card-img-top" alt="Business">
-          <div class="card-body d-flex flex-column">
-            <span class="badge text-bg-warning align-self-start mb-2">Business</span>
-            <h2 class="card-title h5">Markets Rally After Interest Rate Decision</h2>
-            <p class="card-text text-muted">Stocks climbed across the board as central banks signaled a pause in rate hikes.</p>
-            <a href="#" class="btn btn-outline-primary mt-auto align-self-start">Read more</a>
-          </div>
-        </article>
-      </div>
-
-      <div class="col">
-        <article class="card h-100 border-0 shadow-sm news-card">
-          <img src="https://picsum.photos/seed/health/600/400" class="card-img-top" alt="Health">
-          <div class="card-body d-flex flex-column">
-            <span class="badge text-bg-info align-self-start mb-2">Health</span>
-            <h2 class="card-title h5">Study Links Daily Walks to Better Sleep</h2>
-            <p class="card-text text-muted">A new study finds that just 30 minutes of walking a day can significantly improve sleep quality.</p>
-            <a href="#" class="btn btn-outline-primary mt-auto align-self-start">Read more</a>
-          </div>
-        </article>
-      </div>
-
-      <div class="col">
-        <article class="card h-100 border-0 shadow-sm news-card">
-          <img src="https://picsum.photos/seed/science/600/400" class="card-img-top" alt="Science">
-          <div class="card-body d-flex flex-column">
-            <span class="badge text-bg-secondary align-self-start mb-2">Science</span>
-            <h2 class="card-title h5">Space Telescope Captures Distant Galaxy</h2>
-            <p class="card-text text-muted">Astronomers share stunning new images of a galaxy formed shortly after the Big Bang.</p>
-            <a href="#" class="btn btn-outline-primary mt-auto align-self-start">Read more</a>
-          </div>
-        </article>
-      </div>
-
     </div>
+
+    <!-- Latest grid -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="section-title h3 mb-0">Latest news</h2>
+      <a href="#" class="read-more small">View all <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4 mb-5">
+      <div class="col">
+        <article class="news-card">
+          <div class="thumb"><img src="https://picsum.photos/seed/earth/800/500" alt="World"></div>
+          <div class="p-4 d-flex flex-column flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="tag">World</span><span class="small text-muted-2">4 min read</span>
+            </div>
+            <h3>Global Leaders Meet for Landmark Climate Summit</h3>
+            <p class="text-muted-2 flex-grow-1">Heads of state gather to set ambitious new targets for cutting emissions over the next decade.</p>
+            <a href="#" class="read-more">Read more <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </article>
+      </div>
+
+      <div class="col">
+        <article class="news-card">
+          <div class="thumb"><img src="https://picsum.photos/seed/stocks/800/500" alt="Business"></div>
+          <div class="p-4 d-flex flex-column flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="tag">Business</span><span class="small text-muted-2">3 min read</span>
+            </div>
+            <h3>Markets Rally After Interest Rate Decision</h3>
+            <p class="text-muted-2 flex-grow-1">Stocks climbed across the board as central banks signaled a pause in further rate hikes.</p>
+            <a href="#" class="read-more">Read more <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </article>
+      </div>
+
+      <div class="col">
+        <article class="news-card">
+          <div class="thumb"><img src="https://picsum.photos/seed/stadium/800/500" alt="Sports"></div>
+          <div class="p-4 d-flex flex-column flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="tag">Sports</span><span class="small text-muted-2">5 min read</span>
+            </div>
+            <h3>Underdogs Clinch Championship Title</h3>
+            <p class="text-muted-2 flex-grow-1">In a thrilling final, the underdog team secured victory in the very last minute of extra time.</p>
+            <a href="#" class="read-more">Read more <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </article>
+      </div>
+
+      <div class="col">
+        <article class="news-card">
+          <div class="thumb"><img src="https://picsum.photos/seed/walk/800/500" alt="Health"></div>
+          <div class="p-4 d-flex flex-column flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="tag">Health</span><span class="small text-muted-2">4 min read</span>
+            </div>
+            <h3>Study Links Daily Walks to Better Sleep</h3>
+            <p class="text-muted-2 flex-grow-1">Just 30 minutes of walking a day can significantly improve sleep quality, researchers say.</p>
+            <a href="#" class="read-more">Read more <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </article>
+      </div>
+
+      <div class="col">
+        <article class="news-card">
+          <div class="thumb"><img src="https://picsum.photos/seed/galaxy/800/500" alt="Science"></div>
+          <div class="p-4 d-flex flex-column flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="tag">Science</span><span class="small text-muted-2">6 min read</span>
+            </div>
+            <h3>Space Telescope Captures Distant Galaxy</h3>
+            <p class="text-muted-2 flex-grow-1">Astronomers share stunning images of a galaxy formed shortly after the Big Bang.</p>
+            <a href="#" class="read-more">Read more <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </article>
+      </div>
+
+      <div class="col">
+        <article class="news-card">
+          <div class="thumb"><img src="https://picsum.photos/seed/robotics/800/500" alt="Tech"></div>
+          <div class="p-4 d-flex flex-column flex-grow-1">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="tag">Tech</span><span class="small text-muted-2">3 min read</span>
+            </div>
+            <h3>AI Assistants Are Changing How We Work</h3>
+            <p class="text-muted-2 flex-grow-1">Companies report big productivity gains as AI tools become part of everyday workflows.</p>
+            <a href="#" class="read-more">Read more <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Newsletter -->
+    <section class="newsletter p-4 p-md-5">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-6">
+          <h2 class="fw-bold mb-2">Never miss a story</h2>
+          <p class="mb-0 opacity-75">Get the day's most important news delivered to your inbox every morning.</p>
+        </div>
+        <div class="col-lg-6">
+          <form class="d-flex flex-column flex-sm-row gap-2" onsubmit="return false;">
+            <input type="email" class="form-control" placeholder="you@example.com" aria-label="Email address">
+            <button class="btn btn-dark" type="submit">Subscribe</button>
+          </form>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Footer -->
-  <footer class="bg-dark text-white-50 py-3">
-    <div class="container text-center small">
-      &copy; 2026 My News Portal. All rights reserved.
+  <footer class="py-4">
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+      <span class="fw-bold d-flex align-items-center gap-2">
+        <span class="brand-logo" style="width:28px;height:28px;font-size:.8rem"><i class="bi bi-lightning-charge-fill"></i></span>
+        My News Portal
+      </span>
+      <span class="small text-muted-2">&copy; 2026 My News Portal. All rights reserved.</span>
+      <div class="d-flex gap-2">
+        <a href="#" class="icon-btn" aria-label="X"><i class="bi bi-twitter-x"></i></a>
+        <a href="#" class="icon-btn" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+        <a href="#" class="icon-btn" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+      </div>
     </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
           integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script>
+    // Current date
+    document.getElementById('today').textContent = new Date().toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+
+    // Light / dark theme toggle
+    const root = document.documentElement;
+    const toggle = document.getElementById('themeToggle');
+    const setTheme = (theme) => {
+      root.setAttribute('data-bs-theme', theme);
+      toggle.innerHTML = theme === 'dark' ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>';
+      try { localStorage.setItem('theme', theme); } catch (e) {}
+    };
+    let saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    setTheme(saved || 'dark');
+    toggle.addEventListener('click', () => setTheme(root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark'));
+  </script>
 </body>
 </html>
